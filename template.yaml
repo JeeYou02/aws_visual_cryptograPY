@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Local test for CryptoVision app
+
+Resources:
+  CryptoVisionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      MemorySize: 1024
+      Timeout: 30
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /api
+            Method: post
+
+        ApiOptionsEvent:
+          Type: Api
+          Properties:
+            Path: /api
+            Method: options
+            
+    Metadata:
+      DockerContext: .
+      Dockerfile: Dockerfile

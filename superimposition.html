@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Superimposition - CryptoVision</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col">
+    <custom-navbar></custom-navbar>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Superimposition Section -->
+        <section id="superimposition">
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i data-feather="layers" class="mr-2"></i> Share Superimposition
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Share 1 -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-300">First Share</h3>
+                        <div id="share1Preview" class="border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-700">
+                            <i data-feather="upload" class="text-gray-400 w-12 h-12 mb-2"></i>
+                            <p class="text-gray-400 mb-4">Drag & drop first share here</p>
+                            <input type="file" id="share1" accept="image/*" class="hidden">
+                            <div class="flex space-x-2 justify-center">
+                                <label for="share1" class="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition">
+                                    Select Share
+                                </label>
+                                <button id="pasteShare1Btn" type="button" class="px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition">
+                                    Paste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Share 2 -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-300">Second Share</h3>
+                        <div id="share2Preview" class="border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-700">
+                            <i data-feather="upload" class="text-gray-400 w-12 h-12 mb-2"></i>
+                            <p class="text-gray-400 mb-4">Drag & drop second share here</p>
+                            <input type="file" id="share2" accept="image/*" class="hidden">
+                            <div class="flex space-x-2 justify-center">
+                                <label for="share2" class="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition">
+                                    Select Share
+                                </label>
+                                <button id="pasteShare2Btn" type="button" class="px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition">
+                                    Paste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="superimposeBtn" class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mt-8 flex items-center justify-center">
+                    <i data-feather="eye" class="mr-2"></i> Superimpose Shares
+                </button>
+                
+                <!-- Superimposition Result -->
+                <div id="superimpositionResult" class="hidden mt-8">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-4">Superimposed Result</h3>
+                    <div class="bg-gray-700 rounded-lg p-4 max-w-md">
+                        <div id="superimposedImagePreview" class="border border-gray-600 rounded-lg overflow-hidden bg-gray-600 min-h-[200px] flex items-center justify-center">
+                            <span class="text-gray-400">Superimposed result will appear here</span>
+                        </div>
+                        <button id="downloadSuperimposedBtn" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                            <i data-feather="download" class="mr-1 w-4 h-4 inline"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <custom-footer></custom-footer>
+
+    <script src="script.js"></script>
+    <!--<script>
+        feather.replace();
+        // Add superimposition-specific JavaScript here
+        document.addEventListener('DOMContentLoaded', function() {
+            const superimposeBtn = document.getElementById('superimposeBtn');
+            superimposeBtn.addEventListener('click', function() {
+                const superimpositionResult = document.getElementById('superimpositionResult');
+                superimpositionResult.classList.remove('hidden');
+                
+                this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Superimposing...';
+                feather.replace();
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i data-feather="eye" class="mr-2"></i> Superimpose Shares';
+                    feather.replace();
+                }, 2000);
+            });
+        });
+    </script>-->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

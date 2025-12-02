@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Encryption - CryptoVision</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col">
+    <custom-navbar></custom-navbar>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Encryption Section -->
+        <section id="encryption" class="mb-16">
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i data-feather="lock" class="mr-2"></i> Image Encryption
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Input Image -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-300">Input Image</h3>
+                        <div id="inputImagePreview" class="border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-700">
+                            <i data-feather="upload" class="text-gray-400 w-12 h-12 mb-2"></i>
+                            <p class="text-gray-400 mb-4">Drag & drop your image here</p>
+                            <input type="file" id="inputImage" accept="image/*" class="hidden">
+                            <div class="flex space-x-2 justify-center">
+                                <label for="inputImage" class="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition">
+                                    Select Image
+                                </label>
+                                <button id="pasteInputImageBtn" type="button" class="px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition">
+                                    Paste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Conversion Options -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-300 mb-3">Conversion Type</h3>
+                            <div class="radio-card-grid">
+                                <label class="radio-card selected">
+                                    <input type="radio" name="conversionType" value="binary" checked>
+                                    <div class="radio-card-icon">
+                                        <i data-feather="square"></i>
+                                    </div>
+                                    <div class="radio-card-text">Binary</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="conversionType" value="greyscale">
+                                    <div class="radio-card-icon">
+                                        <i data-feather="grid"></i>
+                                    </div>
+                                    <div class="radio-card-text">Greyscale</div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Key Options -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-300 mb-3">Encryption Key</h3>
+                            <div class="radio-card-grid">
+                                <label class="radio-card selected">
+                                    <input type="radio" name="keyOption" value="generate" checked>
+                                    <div class="radio-card-icon">
+                                        <i data-feather="shield"></i>
+                                    </div>
+                                    <div class="radio-card-text">Generate Key</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="keyOption" value="custom">
+                                    <div class="radio-card-icon">
+                                        <i data-feather="key"></i>
+                                    </div>
+                                    <div class="radio-card-text">Custom Key</div>
+                                </label>
+                            </div>
+                            <div id="customKeyUpload" class="hidden mt-4">
+                                <div id="customKeyImagePreview" class="border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center h-32 bg-gray-700">
+                                    <i data-feather="upload" class="text-gray-400 w-8 h-8 mb-2"></i>
+                                    <p class="text-gray-400 mb-2">Upload your key image</p>
+                                    <input type="file" id="customKeyImage" accept="image/*" class="hidden">
+                                    <div class="flex space-x-2 justify-center">
+                                        <label for="customKeyImage" class="px-3 py-1 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition text-sm">
+                                            Select Key
+                                        </label>
+                                        <button id="pasteCustomKeyBtn" type="button" class="px-3 py-1 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition text-sm">
+                                            Paste
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+<button id="encryptBtn" class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            <i data-feather="shield" class="mr-2"></i> Encrypt Image
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Results -->
+                <div id="encryptionResults" class="hidden mt-8">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-4">Results</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h4 class="text-md font-medium text-gray-400 mb-2">Encrypted Image</h4>
+                            <div id="encryptedImagePreview" class="border border-gray-600 rounded-lg overflow-hidden bg-gray-600 min-h-[200px] flex items-center justify-center">
+                                <span class="text-gray-400">Preview will appear here</span>
+                            </div>
+                            <button id="downloadEncryptedBtn" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                                <i data-feather="download" class="mr-1 w-4 h-4 inline"></i> Download
+                            </button>
+                        </div>
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h4 class="text-md font-medium text-gray-400 mb-2">Encryption Key</h4>
+                            <div id="keyImagePreview" class="border border-gray-600 rounded-lg overflow-hidden bg-gray-600 min-h-[200px] flex items-center justify-center">
+                                <span class="text-gray-400">Key preview will appear here</span>
+                            </div>
+                            <button id="downloadKeyBtn" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                                <i data-feather="download" class="mr-1 w-4 h-4 inline"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <custom-footer></custom-footer>
+
+    <script src="script.js"></script>
+    <!--<script>
+        feather.replace();
+        // Add encryption-specific JavaScript here
+        document.addEventListener('DOMContentLoaded', function() {
+            const customKeyOption = document.querySelector('input[name="keyOption"][value="custom"]');
+            const customKeyUpload = document.getElementById('customKeyUpload');
+            
+            customKeyOption.addEventListener('change', function() {
+                if (this.checked) {
+                    customKeyUpload.classList.remove('hidden');
+                } else {
+                    customKeyUpload.classList.add('hidden');
+                }
+            });
+            
+            const encryptBtn = document.getElementById('encryptBtn');
+            encryptBtn.addEventListener('click', function() {
+                const encryptionResults = document.getElementById('encryptionResults');
+                encryptionResults.classList.remove('hidden');
+                
+                this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Encrypting...';
+                feather.replace();
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i data-feather="shield" class="mr-2"></i> Encrypt Image';
+                    feather.replace();
+                }, 2000);
+            });
+        });
+    </script>-->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

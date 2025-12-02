@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Transformation - CryptoVision</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col">
+    <custom-navbar></custom-navbar>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Transformation Section -->
+        <section id="transformation" class="mb-16">
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i data-feather="repeat" class="mr-2"></i> Share Transformation
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Share Input -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-300">Share to Transform</h3>
+                        <div id="shareToTransformPreview" class="border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-700">
+                            <i data-feather="upload" class="text-gray-400 w-12 h-12 mb-2"></i>
+                            <p class="text-gray-400 mb-4">Drag & drop your share here</p>
+                            <input type="file" id="shareToTransform" accept="image/*" class="hidden">
+                            <div class="flex space-x-2 justify-center">
+                                <label for="shareToTransform" class="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition">
+                                    Select Share
+                                </label>
+                                <button id="pasteTransformBtn" type="button" class="px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-pointer hover:bg-gray-500 transition">
+                                    Paste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Transformation Options -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-300 mb-3">Share Type</h3>
+                            <div class="radio-card-grid">
+                                <label class="radio-card selected">
+                                    <input type="radio" id="radioTransformationBinary" name="shareType" value="binary" checked>
+                                    <div class="radio-card-icon">
+                                        <i data-feather="square"></i>
+                                    </div>
+                                    <div class="radio-card-text">Binary</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" id="radioTransformationGreyscale" name="shareType" value="greyscale">
+                                    <div class="radio-card-icon">
+                                        <i data-feather="grid"></i>
+                                    </div>
+                                    <div class="radio-card-text">Greyscale</div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="binaryOptions" class="space-y-3">
+                            <h3 class="text-lg font-semibold text-gray-300 mb-3">Transformation Type</h3>
+                            <div class="radio-card-grid">
+                                <label class="radio-card selected">
+                                    <input type="radio" id="radioTransformationVertical" name="transformationType" value="vertical" checked>
+                                    <div class="radio-card-icon">
+                                        <i data-feather="chevron-down"></i>
+                                    </div>
+                                    <div class="radio-card-text">Vertical</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" id="radioTransformationHorizontal" name="transformationType" value="horizontal">
+                                    <div class="radio-card-icon">
+                                        <i data-feather="chevron-right"></i>
+                                    </div>
+                                    <div class="radio-card-text">Horizontal</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" id="radioTransformationDiagonal" name="transformationType" value="diagonal">
+                                    <div class="radio-card-icon">
+                                        <i data-feather="chevrons-down-right"></i>
+                                    </div>
+                                    <div class="radio-card-text">Diagonal</div>
+                                </label>
+                            </div>
+                        </div>
+<!-- Transformation Preview -->
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <img id="transformationPreviewImage" src="./images/bin_ver_scheme.png" alt="Transformation Preview" class="w-auto h-auto block mx-auto">
+                        </div>
+                        
+                        <button id="transformBtn" class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            <i data-feather="refresh-cw" class="mr-2"></i> Transform Share
+                        </button>
+                    </div>
+</div>
+                
+                <!-- Transformation Result -->
+                <div id="transformationResult" class="hidden mt-8">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-4">Transformed Share</h3>
+                    <div class="bg-gray-700 rounded-lg p-4 max-w-md">
+                        <div id="transformedSharePreview" class="border border-gray-600 rounded-lg overflow-hidden bg-gray-600 min-h-[200px] flex items-center justify-center">
+                            <span class="text-gray-400">Transformed share preview will appear here</span>
+                        </div>
+                        <button id="downloadTransformBtn" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                            <i data-feather="download" class="mr-1 w-4 h-4 inline"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <custom-footer></custom-footer>
+
+    <script src="script.js"></script>
+    <!--<script>
+        feather.replace();
+        // Add transformation-specific JavaScript here
+        document.addEventListener('DOMContentLoaded', function() {
+            const shareTypeRadios = document.getElementsByName('shareType');
+            const binaryOptions = document.getElementById('binaryOptions');
+            
+            Array.from(shareTypeRadios).forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'binary') {
+                        binaryOptions.classList.remove('hidden');
+                    } else {
+                        binaryOptions.classList.add('hidden');
+                    }
+                });
+            });
+            
+            const transformBtn = document.getElementById('transformBtn');
+            transformBtn.addEventListener('click', function() {
+                const transformationResult = document.getElementById('transformationResult');
+                transformationResult.classList.remove('hidden');
+                
+                this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Transforming...';
+                feather.replace();
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i data-feather="refresh-cw" class="mr-2"></i> Transform Share';
+                    feather.replace();
+                }, 2000);
+            });
+        });
+    </script>-->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

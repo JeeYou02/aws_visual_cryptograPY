@@ -1,0 +1,479 @@
+async function handlePasteClick(fileInputElement) {
+    try {
+        // Check for clipboard read permission
+        const permission = await navigator.permissions.query({ name: 'clipboard-read' });
+        if (permission.state === 'denied') {
+            alert('Clipboard permission denied. Please grant permission in your browser settings.');
+            return;
+        }
+
+        // Read clipboard contents
+        const clipboardItems = await navigator.clipboard.read();
+        let imageBlob = null;
+
+        for (const item of clipboardItems) {
+            // Find the first item that is an image
+            const imageType = item.types.find(type => type.startsWith('image/'));
+            if (imageType) {
+                imageBlob = await item.getType(imageType);
+                break;
+            }
+        }
+
+        if (imageBlob) {
+            // Create a File object from the blob
+            const fileName = 'pasted_image.png'; // Give it a default name
+            const imageFile = new File([imageBlob], fileName, { type: imageBlob.type });
+
+            // Create a DataTransfer object to hold the file
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(imageFile);
+
+            // Set the file input's files property
+            fileInputElement.files = dataTransfer.files;
+
+            // Manually trigger the 'change' event to update previews
+            fileInputElement.dispatchEvent(new Event('change', { 'bubbles': true }));
+        } else {
+            alert('No image found on the clipboard.');
+        }
+    } catch (err) {
+        console.error('Failed to read from clipboard:', err);
+        alert('Failed to paste image. The clipboard might be empty or your browser may not support this feature (e.g., Firefox). ' + err.message);
+    }
+}
+
+function downloadBase64Image(base64Data, fileName) {
+    const link = document.createElement('a');
+    link.href = base64Data;
+    link.download = fileName;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            // result includes "data:image/png;base64," prefix, so we split it off
+            resolve(reader.result.split(',')[1]);
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+const API_URL = '${api_url}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced radio button functionality
+    function setupRadioCards() {
+        // Find all radio card containers
+        const radioCards = document.querySelectorAll('.radio-card');
+        
+        radioCards.forEach(card => {
+            const radioInput = card.querySelector('input[type="radio"]');
+            
+            // Set initial selected state
+            if (radioInput.checked) {
+                card.classList.add('selected');
+            }
+            
+            // Handle click on card
+            card.addEventListener('click', () => {
+                // Unselect all cards in the same group
+                const groupName = radioInput.name;
+                document.querySelectorAll(`.radio-card input[name="$${groupName}"]`).forEach(input => {
+                    input.closest('.radio-card').classList.remove('selected');
+                });
+                
+                // Select this card
+                radioInput.checked = true;
+                card.classList.add('selected');
+                
+                // Change preview on selection
+                if (radioInput.id === 'radioTransformationVertical') {
+                    transformationPreview.src = 'images/bin_ver_scheme.png';
+                } else if (radioInput.id === 'radioTransformationHorizontal') {
+                    transformationPreview.src = 'images/bin_hor_scheme.png';
+                } else if (radioInput.id === 'radioTransformationDiagonal') {
+                    transformationPreview.src = 'images/bin_diag_scheme.png';
+                } else if (radioInput.id === 'radioTransformationGreyscale') {
+                    transformationPreview.src = 'images/greyscale_scheme.png';
+                } else if (radioInput.id === 'radioTransformationBinary') {
+                    if (document.getElementById('radioTransformationVertical').checked) {
+                        transformationPreview.src = 'images/bin_ver_scheme.png';
+                    } else if (document.getElementById('radioTransformationHorizontal').checked) {
+                        transformationPreview.src = 'images/bin_hor_scheme.png';
+                    } else if (document.getElementById('radioTransformationDiagonal').checked) {
+                        transformationPreview.src = 'images/bin_diag_scheme.png';
+                    }
+                }
+
+                // Trigger change event for the radio input
+                radioInput.dispatchEvent(new Event('change'));
+            });
+            
+            // Handle direct radio input change (if any)
+            radioInput.addEventListener('change', () => {
+                if (radioInput.checked) {
+                    // Unselect all cards in the same group
+                    const groupName = radioInput.name;
+                    document.querySelectorAll(`.radio-card input[name="$${groupName}"]`).forEach(input => {
+                        input.closest('.radio-card').classList.remove('selected');
+                    });
+                    
+                    // Select this card
+                    card.classList.add('selected');
+                }
+            });
+        });
+    }
+    
+    // Encryption section logic
+    let inputImageFile = null;
+    let customKeyFile = null;
+    const inputImage = document.getElementById('inputImage');
+    const pasteInputImageBtn = document.getElementById('pasteInputImageBtn');
+    const pasteCustomKeyBtn = document.getElementById('pasteCustomKeyBtn');
+    const encryptBtn = document.getElementById('encryptBtn');
+    const encryptionResults = document.getElementById('encryptionResults');
+    const downloadEncryptedBtn = document.getElementById('downloadEncryptedBtn');
+    const downloadKeyBtn = document.getElementById('downloadKeyBtn');
+    
+    // Transformation section logic
+    let shareToTransformFile = null;
+    const shareToTransform = document.getElementById('shareToTransform');
+    const binaryOptions = document.getElementById('binaryOptions');
+    const transformationPreview = document.getElementById('transformationPreviewImage');
+    const pasteTransformBtn = document.getElementById('pasteTransformBtn');
+    const transformBtn = document.getElementById('transformBtn');
+    const transformationResult = document.getElementById('transformationResult');
+    const downloadTransformBtn = document.getElementById('downloadTransformBtn');
+    
+    
+    // Superimposition section logic
+    let share1File = null;
+    let share2File = null;
+    const share1 = document.getElementById('share1');
+    const share2 = document.getElementById('share2');
+    const pasteShare1Btn = document.getElementById('pasteShare1Btn');
+    const pasteShare2Btn = document.getElementById('pasteShare2Btn');
+    const superimposeBtn = document.getElementById('superimposeBtn');
+    const superimpositionResult = document.getElementById('superimpositionResult');
+    const downloadSuperimposedBtn = document.getElementById('downloadSuperimposedBtn');
+    
+    // Initialize radio cards
+    setupRadioCards();
+    // Toggle custom key upload
+    const keyOptionRadios = document.querySelectorAll('input[name="keyOption"]');
+    const customKeyUpload = document.getElementById('customKeyUpload');
+    
+    if (keyOptionRadios.length > 0 && customKeyUpload) {
+        keyOptionRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customKeyUpload.classList.remove('hidden');
+                } else {
+                    customKeyUpload.classList.add('hidden');
+                }
+            });
+        });
+    }
+    // Toggle binary options based on share type
+    const shareTypeRadios = document.getElementsByName('shareType');
+    if (binaryOptions && shareTypeRadios.length > 0) {
+        Array.from(shareTypeRadios).forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'binary') {
+                    binaryOptions.classList.remove('hidden');
+                } else {
+                    binaryOptions.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    if (pasteInputImageBtn) {
+        pasteInputImageBtn.addEventListener('click', () => {
+            const input = document.getElementById('inputImage');
+            handlePasteClick(input);
+        });
+    }
+
+    if (pasteCustomKeyBtn) {
+        pasteCustomKeyBtn.addEventListener('click', () => {
+            const input = document.getElementById('customKeyImage');
+            handlePasteClick(input);
+        });
+    }
+
+    if (pasteTransformBtn) {
+        pasteTransformBtn.addEventListener('click', () => {
+            const input = document.getElementById('shareToTransform');
+            handlePasteClick(input);
+        });
+    }
+
+    if (pasteShare1Btn) {
+        pasteShare1Btn.addEventListener('click', () => {
+            const input = document.getElementById('share1');
+            handlePasteClick(input);
+        });
+    }
+
+    if (pasteShare2Btn) {
+        pasteShare2Btn.addEventListener('click', () => {
+            const input = document.getElementById('share2');
+            handlePasteClick(input);
+        });
+    }
+
+// Encryption button click handler
+    if (encryptBtn && encryptionResults) {
+        encryptBtn.addEventListener('click', async function() {
+            const conversionType = document.querySelector('input[name="conversionType"]:checked').value;
+            const keyOption = document.querySelector('input[name="keyOption"]:checked').value;
+            
+            if (!inputImageFile) {
+                alert('Please select an input image.');
+                return;
+            }
+
+            if (keyOption === 'custom' && !customKeyFile) {
+                alert('Please select a custom key image.');
+                return;
+            }
+
+            // Show loading state
+            this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Encrypting...';
+            feather.replace();
+            
+            try {
+                // 1. Prepare the JSON payload
+                const payload = {
+                    action: 'encrypt',
+                    conversion_type: conversionType,
+                    key_option: keyOption,
+                    image_b64: await fileToBase64(inputImageFile)
+                };
+
+                // 2. Add custom key if it exists
+                if (keyOption === 'custom' && customKeyFile) {
+                    payload.custom_key_b64 = await fileToBase64(customKeyFile);
+                }
+                
+                // 3. Call the API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+
+                // 4. Show results
+                encryptionResults.classList.remove('hidden');
+                document.getElementById('encryptedImagePreview').innerHTML = 
+                    `<img id="encryptedResultImage" src="data:image/png;base64,$${data.share2_b64}" alt="Encrypted Share" class="max-w-full max-h-full">`;
+                document.getElementById('keyImagePreview').innerHTML = 
+                    `<img id="keyResultImage" src="data:image/png;base64,$${data.share1_b64}" alt="Encryption Key" class="max-w-full max-h-full">`;
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                // 5. Reset button
+                this.innerHTML = '<i data-feather="shield" class="mr-2"></i> Encrypt Image';
+                feather.replace();
+            }
+        });
+    }
+    
+// Transformation button click handler
+    if (transformBtn && transformationResult) {
+        transformBtn.addEventListener('click', async function() {
+            const shareType = document.querySelector('input[name="shareType"]:checked').value;
+            const transformTypeInput = document.querySelector('input[name="transformationType"]:checked');
+            
+            if (!shareToTransformFile) {
+                alert('Please select a share to transform.');
+                return;
+            }
+
+            // Show loading state
+            this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Transforming...';
+            feather.replace();
+
+            try {
+                // 1. Prepare the payload
+                const payload = {
+                    action: 'transform',
+                    share_type: shareType,
+                    image_b64: await fileToBase64(shareToTransformFile)
+                };
+                
+                // 2. Add binary-specific option if it's selected
+                if (shareType === 'binary' && transformTypeInput) {
+                    payload.transform_type = transformTypeInput.value;
+                }
+
+                // 3. Call the API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+
+                // 4. Show results
+                transformationResult.classList.remove('hidden');
+                document.getElementById('transformedSharePreview').innerHTML = 
+                    `<img id="transformedResultImage" src="data:image/png;base64,$${data.transformed_image_b64}" alt="Transformed Share" class="max-w-full max-h-full">`;
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                // 5. Reset button
+                this.innerHTML = '<i data-feather="refresh-cw" class="mr-2"></i> Transform Share';
+                feather.replace();
+            }
+        });
+    }
+    
+    // Superimposition button click handler
+    if (superimposeBtn && superimpositionResult) {
+        superimposeBtn.addEventListener('click', async function() {
+
+            if (!share1File || !share2File) {
+                alert('Please select both shares to superimpose.');
+                return;
+            }
+
+            // Show loading state
+            this.innerHTML = '<i data-feather="loader" class="animate-spin mr-2"></i> Superimposing...';
+            feather.replace();
+
+            try {
+                // 1. Prepare the payload
+                // Use Promise.all to load both files in parallel
+                const [share1_b64, share2_b64] = await Promise.all([
+                    fileToBase64(share1File),
+                    fileToBase64(share2File)
+                ]);
+
+                const payload = {
+                    action: 'superimpose',
+                    share1_b64: share1_b64,
+                    share2_b64: share2_b64
+                };
+
+                // 2. Call the API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+
+                // 3. Show results
+                superimpositionResult.classList.remove('hidden');
+                document.getElementById('superimposedImagePreview').innerHTML = 
+                    `<img id="superimposedResultImage" src="data:image/png;base64,$${data.result_image_b64}" alt="Superimposed Result" class="max-w-full max-h-full">`;
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                // 4. Reset button
+                this.innerHTML = '<i data-feather="eye" class="mr-2"></i> Superimpose Shares';
+                feather.replace();
+            }
+        });
+    }
+    
+    // File upload preview functionality
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewId = e.target.id + 'Preview';
+                    
+                    if (previewId === 'inputImagePreview') {
+                        inputImageFile = inputImage.files[0];
+                    } else if (previewId === 'customKeyImagePreview') {
+                        customKeyFile = document.getElementById('customKeyImage').files[0];
+                    } else if (previewId === 'shareToTransformPreview') {
+                        shareToTransformFile = document.getElementById('shareToTransform').files[0];
+                    } else if (previewId === 'share1Preview') {
+                        share1File = document.getElementById('share1').files[0];
+                    } else if (previewId === 'share2Preview') {
+                        share2File = document.getElementById('share2').files[0];
+                    }
+
+                    const previewElement = document.getElementById(previewId);
+                    previewElement.innerHTML = `<img src="$${event.target.result}" alt="Uploaded image" class="max-w-full max-h-full">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    if (downloadEncryptedBtn) {
+        downloadEncryptedBtn.addEventListener('click', () => {
+            const img = document.getElementById('encryptedResultImage');
+            if (img && img.src) {
+                downloadBase64Image(img.src, 'encrypted_share.png');
+            }
+        });
+    }
+
+    if (downloadKeyBtn) {
+        downloadKeyBtn.addEventListener('click', () => {
+            const img = document.getElementById('keyResultImage');
+            if (img && img.src) {
+                downloadBase64Image(img.src, 'encryption_key.png');
+            }
+        });
+    }
+    
+    if (downloadTransformBtn) {
+        downloadTransformBtn.addEventListener('click', () => {
+            const img = document.getElementById('transformedResultImage');
+            if (img && img.src) {
+                downloadBase64Image(img.src, 'transformed_share.png');
+            }
+        });
+    }
+
+    if (downloadSuperimposedBtn) {
+        downloadSuperimposedBtn.addEventListener('click', () => {
+            const img = document.getElementById('superimposedResultImage');
+            if (img && img.src) {
+                downloadBase64Image(img.src, 'superimposed_result.png');
+            }
+        });
+    }
+
+    // Feather icons initialization
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
