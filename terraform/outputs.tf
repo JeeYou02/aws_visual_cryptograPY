@@ -5,3 +5,7 @@ output "website_url" {
 output "api_url" {
   value = "${aws_apigatewayv2_stage.default.invoke_url}/api"
 }
+
+output "s3_bucket_name" {
+  value = aws_s3_bucket.frontend.id
+}
