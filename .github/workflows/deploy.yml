@@ -9,7 +9,7 @@ on:
       - 'README.md'
 
 jobs:
-  deploy-backend:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
