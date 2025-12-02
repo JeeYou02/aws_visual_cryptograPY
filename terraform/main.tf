@@ -22,6 +22,28 @@ resource "aws_ecr_repository" "repo" {
   force_delete = true # Allows destroying even if it contains images
 }
 
+# 2a. ECR POLICY TO ALLOW LAMBDA TO PULL IMAGES
+resource "aws_ecr_repository_policy" "lambda_ecr_policy" {
+  repository = aws_ecr_repository.repo.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "LambdaPull"
+        Effect    = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+      }
+    ]
+  })
+}
+
 # 3. BUILD & PUSH DOCKER IMAGE
 resource "null_resource" "docker_build_push" {
   triggers = {
@@ -44,8 +66,10 @@ resource "aws_lambda_function" "func" {
   timeout       = 30
   memory_size   = 1024
 
-  # Wait for the docker image to be pushed before creating the function
-  depends_on = [null_resource.docker_build_push]
+  depends_on = [
+    null_resource.docker_build_push,
+    aws_ecr_repository_policy.lambda_ecr_policy
+  ]
 }
 
 # 4a. CLOUDWATCH LOG GROUP FOR LAMBDA (so terraform can destroy it)
