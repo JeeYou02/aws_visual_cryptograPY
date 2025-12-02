@@ -84,6 +84,9 @@ jobs:
             --exclude ".github/*" \
             --exclude "terraform/*" \
             --exclude "Dockerfile" \
-            --exclude "deploy.py" \
+            --exclude "lambda_function.py" \
             --exclude "*.tftpl" \
+            --exclude "requirements.txt" \
+            --exclude "template.yaml" \
+            --exclude "vc_utils/" \
             --delete
