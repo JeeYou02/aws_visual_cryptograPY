@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - 'terraform/**'
+      - 'docs/**'
       - 'README.md'
 
 jobs:
